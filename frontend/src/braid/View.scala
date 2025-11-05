@@ -3,9 +3,12 @@ package braid
 import braid.model.Habit
 import braid.date.Date
 import com.raquo.laminar.api.L.{_, given}
+import com.raquo.laminar.api.features.unitArrows
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 
 import scala.scalajs.js
+
+final case class Habit(id: Int, name: String, streak: Int, dates: Seq[js.Date])
 
 object View {
   def last7Days: Seq[Date] = {
@@ -14,6 +17,8 @@ object View {
       today.subtractDays(i)
     }
   }
+
+  val daysOfTheWeek = Seq("Sun", "Mon", "Tue", "Wed", "Thue", "Fri", "Sat")
 
   def last7DaysTableHeadings: Seq[Element] =
     last7Days.zipWithIndex
@@ -68,16 +73,34 @@ object View {
           s"🔥 ${habit.streak}"
         )
       ),
-      last7Days.map((date) =>
+      last7Days.map((date: js.Date) =>
         td(
           className := "px-3 py-4 text-center",
-          button(className := s"w-8 h-8 rounded-lg transition")
+          habit.dates.find(d =>
+            d.getFullYear() == date.getFullYear() &&
+              d.getUTCMonth() == date.getUTCMonth() &&
+              d.getUTCDate() == date.getUTCDate()
+          ) match {
+            case Some(_) =>
+              div(
+//              onClick --> println( writeToString(habit) ),
+                strong("Yes")
+              )
+            case None => "No"
+          }
         )
+      ),
+      td(
+        className := "px-3 py-4 text-center",
+        button(className := s"w-8 h-8 rounded-lg transition")
       ),
       td(
         className := "px-4 py-4 text-center",
         button(
-          // onClick:={() :=> deleteHabit(habit.id)}
+          "Delete",
+          onClick.flatMap(_ => FetchStream.post("/habit/" + habit.id)) --> {
+            responseText => println(responseText)
+          },
           className := "text-red-500 hover:text-red-700 transition"
         )
       )
