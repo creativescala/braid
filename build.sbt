@@ -40,7 +40,7 @@ lazy val root = project
   .settings(
     name := """braid"""
   )
-  .aggregate(backend, frontend, shared.jvm, shared.js)
+  .aggregate(backend, frontend, shared.jvm, shared.js, date.jvm, date.js)
 
 lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -51,6 +51,15 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
     Compile / unmanagedSourceDirectories ++= Seq(
       baseDirectory.value.getParentFile / "src"
     )
+  )
+  .enablePlugins(KropLayout)
+
+lazy val date = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Full)
+  .in(file("date"))
+  .settings(
+    name := "braid-date",
+    commonSettings
   )
   .enablePlugins(KropLayout)
 
@@ -68,9 +77,7 @@ lazy val backend = project
     // developers. Krop runs in production mode if you don't set this.
     run / javaOptions += "-Dkrop.mode=development",
     reStart / javaOptions += "-Dkrop.mode=development",
-    run / fork := true
-  )
-  .settings(
+    run / fork := true,
     buildInfoKeys := Seq[BuildInfoKey](
       "kropVersion" -> kropVersion,
       "frontendPath" -> (frontend / Compile / fastLinkJS / scalaJSLinkerOutputDirectory).value
@@ -90,7 +97,7 @@ lazy val frontend = project
     scalaJSUseMainModuleInitializer := true
   )
   .enablePlugins(ScalaJSPlugin, KropLayout)
-  .dependsOn(shared.js)
+  .dependsOn(shared.js, date.js)
 
 // This configures the welcome message you see when you start sbt. Change it to
 // add tasks that are useful for your project.
