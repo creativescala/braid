@@ -1,11 +1,12 @@
 package braid
 
 import com.raquo.laminar.api.L.{_, given}
+import com.raquo.laminar.api.features.unitArrows
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 
 import scala.scalajs.js
 
-final case class Habit(name: String, streak: Int, dates: Seq[js.Date])
+final case class Habit(id: Int, name: String, streak: Int, dates: Seq[js.Date])
 
 object View {
 
@@ -81,8 +82,12 @@ object View {
               d.getUTCMonth() == date.getUTCMonth() &&
               d.getUTCDate() == date.getUTCDate()
           ) match {
-            case Some(_) => strong("Yes")
-            case None    => "No"
+            case Some(_) =>
+              div(
+//              onClick --> println( writeToString(habit) ),
+                strong("Yes")
+              )
+            case None => "No"
           }
         )
       ),
@@ -93,7 +98,10 @@ object View {
       td(
         className := "px-4 py-4 text-center",
         button(
-          // onClick:={() :=> deleteHabit(habit.id)}
+          "Delete",
+          onClick.flatMap(_ => FetchStream.post("/habit/" + habit.id)) --> {
+            responseText => println(responseText)
+          },
           className := "text-red-500 hover:text-red-700 transition"
         )
       )
