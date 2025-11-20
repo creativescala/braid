@@ -20,6 +20,12 @@ object Main
       header = "An amazing web application built with Krop"
     ) {
 
+  val habitRoutes =
+    Route(
+      Request.post(Path / "habit" / Param.int),
+      Response.ok(Entity.text)
+    ).handle(habitId => s"Response==>HabitId: $habitId")
+
   val home =
     Routes.home.handle(() =>
       html.base(name, html.home(name, BuildInfo.kropVersion)).toString
@@ -38,7 +44,11 @@ object Main
     ).passthrough
 
   val application =
-    home.orElse(javascript).orElse(assets).orElse(Application.notFound)
+    home
+      .orElse(habitRoutes)
+      .orElse(javascript)
+      .orElse(assets)
+      .orElse(Application.notFound)
 
   override def main: Opts[IO[ExitCode]] =
     (Cli.serveOpts.orElse(Cli.migrateOpts)).map {
