@@ -10,13 +10,18 @@ import scala.scalajs.js
 object Braid {
   def run(mount: dom.Element): Unit = {
     val model =
-      Seq(
-        Habit(1, "Work on Braid", 0, Seq()),
-        Habit(2, "Exercise", 5, Seq()),
-        Habit(3, "Read", 3, Seq(Date.today()))
+      Var(
+        Map(
+          1 -> Habit(1, "Work on Braid", 0, Seq()),
+          2 -> Habit(2, "Exercise", 5, Seq()),
+          3 -> Habit(3, "Read", 3, Seq(Date.today()))
+        )
       )
 
-    val app = View.view(model)
+    val controller = Controller(model)
+    val view = View(controller)
+
+    val app = view.view(model.signal)
 
     render(mount, app)
   }

@@ -10,7 +10,7 @@ import scala.scalajs.js
 
 final case class Habit(id: Int, name: String, streak: Int, dates: Seq[Date])
 
-object View {
+class View(controller: Controller) {
   def last7Days: Seq[Date] = {
     val today = Date.today()
     for (i <- -6 to 0) yield {
@@ -18,13 +18,13 @@ object View {
     }
   }
 
-  val daysOfTheWeek = Seq("Sun", "Mon", "Tue", "Wed", "Thue", "Fri", "Sat")
+  val daysOfTheWeek = Seq("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat")
 
   def last7DaysTableHeadings: Seq[Element] =
     last7Days.zipWithIndex
       .map { (date, i) =>
         th(
-          className := "px-3 py-4 text-center text-sm font-semibold text-gray-700",
+          className := "min-w-16 px-3 py-4 text-center text-sm font-semibold text-gray-700",
           div(
             date.dayOfWeek.toShortString,
             div(
@@ -35,7 +35,7 @@ object View {
         )
       }
 
-  def view(habits: Seq[Habit]): Div =
+  def view(habits: Signal[Map[Int, Habit]]): Div =
     div(
       className := "bg-white rounded-lg shadow-lg overflow-hidden",
       div(
@@ -57,12 +57,15 @@ object View {
               th(className := "px-4 py-4")
             )
           ),
-          tbody(className := "divide-y divide-gray-200", habits.map(habitView))
+          tbody(
+            className := "divide-y divide-gray-200",
+            children <-- habits.map(_.values.toSeq.map(habitView))
+          )
         )
       )
     )
 
-  def habitView(habit: Habit): ReactiveHtmlElement[?] =
+  def habitView(habit: Habit): Node =
     tr(
       className := "hover:bg-gray-50",
       td(className := "px-6 py-4 text-gray-800 font-medium", habit.name),
@@ -83,10 +86,14 @@ object View {
           ) match {
             case Some(_) =>
               div(
-//              onClick --> println( writeToString(habit) ),
+                onClick --> controller.toggleCompletionDate(habit.id, date),
                 strong("Yes")
               )
-            case None => "No"
+            case None =>
+              div(
+                onClick --> controller.toggleCompletionDate(habit.id, date),
+                "No"
+              )
           }
         )
       ),

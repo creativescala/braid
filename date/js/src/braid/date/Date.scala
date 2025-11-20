@@ -2,7 +2,7 @@ package braid.date
 
 import scala.scalajs.js
 
-final class Date(
+final case class Date(
     val day: Int,
     val dayOfWeek: Day,
     val month: Month,
