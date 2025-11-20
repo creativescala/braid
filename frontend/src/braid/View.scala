@@ -1,14 +1,14 @@
 package braid
 
-import braid.model.Habit
 import braid.date.Date
+import braid.model.Habit
 import com.raquo.laminar.api.L.{_, given}
 import com.raquo.laminar.api.features.unitArrows
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 
 import scala.scalajs.js
 
-final case class Habit(id: Int, name: String, streak: Int, dates: Seq[js.Date])
+final case class Habit(id: Int, name: String, streak: Int, dates: Seq[Date])
 
 object View {
   def last7Days: Seq[Date] = {
@@ -73,13 +73,13 @@ object View {
           s"🔥 ${habit.streak}"
         )
       ),
-      last7Days.map((date: js.Date) =>
+      last7Days.map((date: Date) =>
         td(
           className := "px-3 py-4 text-center",
           habit.dates.find(d =>
-            d.getFullYear() == date.getFullYear() &&
-              d.getUTCMonth() == date.getUTCMonth() &&
-              d.getUTCDate() == date.getUTCDate()
+            d.day == date.day &&
+              d.month == date.month &&
+              d.year == date.year
           ) match {
             case Some(_) =>
               div(

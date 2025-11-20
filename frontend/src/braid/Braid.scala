@@ -1,6 +1,7 @@
 package braid
 
 import braid.Habit
+import braid.date.Date
 import com.raquo.laminar.api.L.{_, given}
 import org.scalajs.dom
 
@@ -12,7 +13,7 @@ object Braid {
       Seq(
         Habit(1, "Work on Braid", 0, Seq()),
         Habit(2, "Exercise", 5, Seq()),
-        Habit(3, "Read", 3, Seq(new js.Date(js.Date.now())))
+        Habit(3, "Read", 3, Seq(Date.today()))
       )
 
     val app = View.view(model)
