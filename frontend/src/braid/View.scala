@@ -51,7 +51,12 @@ class View(controller: Controller) {
               ),
               th(
                 className := "px-4 py-4 text-center text-sm font-semibold text-gray-700",
-                "Streak"
+                "Streak",
+                onClick --> {
+                  // TODO: sort by streak
+                  println("Sorting ...")
+                  controller.sortByStreak()
+                }
               ),
               last7DaysTableHeadings,
               th(className := "px-4 py-4")

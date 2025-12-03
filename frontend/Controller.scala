@@ -19,4 +19,8 @@ class Controller(model: Var[Map[Int, Habit]]) {
   def dropSingleRow(index: Int): Unit = {
     model.update(habits => habits.removed(index))
   }
+  def sortByStreak(): Unit = {
+    // TODO: implement reverse sorting
+    model.update(habits => habits.toSeq.sortWith(_._1 > _._1).toMap)
+  }
 }
