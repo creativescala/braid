@@ -51,7 +51,12 @@ class View(controller: Controller) {
               ),
               th(
                 className := "px-4 py-4 text-center text-sm font-semibold text-gray-700",
-                "Streak"
+                "Streak",
+                onClick --> {
+                  // TODO: sort by streak
+                  println("Sorting ...")
+                  controller.sortByStreak()
+                }
               ),
               last7DaysTableHeadings,
               th(className := "px-4 py-4")
@@ -105,8 +110,11 @@ class View(controller: Controller) {
         className := "px-4 py-4 text-center",
         button(
           "Delete",
-          onClick.flatMap(_ => FetchStream.post("/habit/" + habit.id)) --> {
-            responseText => println(responseText)
+          onClick.flatMap(_ =>
+            FetchStream.post("/habit/delete/" + habit.id)
+          ) --> { responseText =>
+            // println(responseText) || assume its a success response
+            controller.dropSingleRow(habit.id)
           },
           className := "text-red-500 hover:text-red-700 transition"
         )
