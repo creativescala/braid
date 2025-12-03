@@ -106,11 +106,10 @@ class View(controller: Controller) {
         button(
           "Delete",
           onClick.flatMap(_ => FetchStream.post("/habit/" + habit.id)) --> {
-            responseText => println(responseText)
+            responseText =>
+              //println(responseText) || assume its a success response
+              controller.dropSingleRow(habit.id)
           },
-          inContext(_.events(onClick).throttle(3000) --> {
-            controller.dropSingleRow(habit.id)
-          }),
           className := "text-red-500 hover:text-red-700 transition"
         )
       )
