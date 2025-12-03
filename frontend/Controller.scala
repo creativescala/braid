@@ -20,7 +20,7 @@ class Controller(model: Var[Map[Int, Habit]]) {
     model.update(habits => habits.removed(index))
   }
   def sortByStreak(): Unit = {
-    // TODO: implement reverse sorting
+    // TODO: implement reverse sorting | Use:: inContext
     model.update(habits => habits.toSeq.sortWith(_._1 > _._1).toMap)
   }
 }
