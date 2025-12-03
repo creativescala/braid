@@ -16,4 +16,7 @@ class Controller(model: Var[Map[Int, Habit]]) {
         case None => habits
       }
     )
+  def dropSingleRow(index: Int): Unit = {
+    model.update(habits => habits.removed(index))
+  }
 }
