@@ -105,10 +105,11 @@ class View(controller: Controller) {
         className := "px-4 py-4 text-center",
         button(
           "Delete",
-          onClick.flatMap(_ => FetchStream.post("/habit/" + habit.id)) --> {
-            responseText =>
-              //println(responseText) || assume its a success response
-              controller.dropSingleRow(habit.id)
+          onClick.flatMap(_ =>
+            FetchStream.post("/habit/delete/" + habit.id)
+          ) --> { responseText =>
+            // println(responseText) || assume its a success response
+            controller.dropSingleRow(habit.id)
           },
           className := "text-red-500 hover:text-red-700 transition"
         )
