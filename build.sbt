@@ -12,6 +12,7 @@ val kropVersion = "0.9.4"
 val laminarVersion = "17.2.1"
 val logbackVersion = "1.5.18"
 val munitVersion = "1.1.1"
+val Borer = "1.14.0"
 
 // Run this command (build) to do everything involved in building the project
 commands += Command.command("build") { state =>
@@ -93,7 +94,13 @@ lazy val frontend = project
   .settings(
     name := """braid-frontend""",
     commonSettings,
-    libraryDependencies += "com.raquo" %%% "laminar" % laminarVersion,
+    libraryDependencies ++= Seq(
+      "com.raquo" %%% "laminar" % laminarVersion,
+      "io.bullet" %%% "borer-core" % Borer,
+      "io.bullet" %%% "borer-derivation" % Borer
+    ),
+    // JSON codec
+
     scalaJSUseMainModuleInitializer := true
   )
   .enablePlugins(ScalaJSPlugin, KropLayout)
