@@ -1,14 +1,50 @@
 package braid
 
 import braid.date.Date
+import braid.date.Day
 import braid.model.Habit
+import com.raquo.airstream.web.WebStorageVar
 import com.raquo.laminar.api.L.{_, given}
 import com.raquo.laminar.api.features.unitArrows
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import io.bullet.borer.Codec
+import io.bullet.borer.Json
+import io.bullet.borer.derivation.MapBasedCodecs._
 
+import java.nio.charset.StandardCharsets
 import scala.scalajs.js
+import scala.util.Try
 
-final case class Habit(id: Int, name: String, streak: Int, dates: Seq[Date])
+final case class Habit(id: String, name: String, streak: Int, dates: Seq[Date])
+
+object Habit {
+
+  val defaultValues = Map(
+    "1" -> Habit("1", "Work on Braid", 0, Seq()),
+    "2" -> Habit("2", "Exercise", 5, Seq()),
+    "3" -> Habit("3", "Read", 3, Seq(Date.today()))
+  )
+
+  given habitCodec: Codec[Habit] = deriveCodec
+  given dateCodec: Codec[Date] = deriveCodec
+  given dayCodec: Codec[braid.date.Day] = deriveCodec
+  given monthCodec: Codec[braid.date.Month] = deriveCodec
+
+  val habitsVar = WebStorageVar
+    .localStorage(
+      key = "habits",
+      syncOwner = None
+    )
+    .withCodec[Map[String, Habit]](
+      encode = hs => Json.encode(hs).toUtf8String,
+      decode = jsonStr =>
+        Json
+          .decode(jsonStr.getBytes(StandardCharsets.UTF_8))
+          .to[Map[String, Habit]]
+          .valueTry,
+      default = Try(defaultValues)
+    )
+}
 
 class View(controller: Controller) {
   def last7Days: Seq[Date] = {
@@ -35,9 +71,46 @@ class View(controller: Controller) {
         )
       }
 
-  def view(habits: Signal[Map[Int, Habit]]): Div =
+  private def availabilityChecker(
+      label: String,
+      check: () => Boolean
+  ): HtmlElement = {
+    val storageAvailableVar = Var(check())
+    p(
+      span(
+        text <-- storageAvailableVar.signal.map {
+          case true  => s"✅ $label is available"
+          case false => s"🛑 User denied access to $label"
+        },
+        marginRight.px(10)
+      ),
+      button(
+        typ("button"),
+        inContext { thisNode =>
+          text <--
+            thisNode
+              .events(onClick)
+              .delayWithStatus(300)
+              .map {
+                case Pending(_) => "Checking..."
+                case _          => "Check again"
+              }
+              .startWith("Check again")
+        },
+        onClick.mapTo(
+          WebStorageVar.isLocalStorageAvailable()
+        ) --> storageAvailableVar
+      )
+    )
+  }
+
+  def view(habits: Signal[Map[String, Habit]]): Div =
     div(
       className := "bg-white rounded-lg shadow-lg overflow-hidden",
+      availabilityChecker(
+        "LocalStorage",
+        WebStorageVar.isLocalStorageAvailable
+      ),
       div(
         className := "overflow-x-auto",
         table(

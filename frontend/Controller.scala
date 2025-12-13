@@ -4,8 +4,8 @@ import braid.Habit
 import braid.date.Date
 import com.raquo.laminar.api.L.{_, given}
 
-class Controller(model: Var[Map[Int, Habit]]) {
-  def toggleCompletionDate(id: Int, date: Date): Unit =
+class Controller(model: Var[Map[String, Habit]]) {
+  def toggleCompletionDate(id: String, date: Date): Unit =
     model.update(habits =>
       habits.get(id) match {
         case Some(habit) =>
@@ -16,7 +16,7 @@ class Controller(model: Var[Map[Int, Habit]]) {
         case None => habits
       }
     )
-  def dropSingleRow(index: Int): Unit = {
+  def dropSingleRow(index: String): Unit = {
     model.update(habits => habits.removed(index))
   }
   def sortByStreak(): Unit = {
