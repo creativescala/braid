@@ -30,6 +30,8 @@ object Habit {
   given dayCodec: Codec[braid.date.Day] = deriveCodec
   given monthCodec: Codec[braid.date.Month] = deriveCodec
 
+  // We can use session storage instead::
+  // https://github.com/raquo/Airstream/?tab=readme-ov-file#sessionstorage
   val habitsVar = WebStorageVar
     .localStorage(
       key = "habits",
