@@ -71,46 +71,9 @@ class View(controller: Controller) {
         )
       }
 
-  private def availabilityChecker(
-      label: String,
-      check: () => Boolean
-  ): HtmlElement = {
-    val storageAvailableVar = Var(check())
-    p(
-      span(
-        text <-- storageAvailableVar.signal.map {
-          case true  => s"✅ $label is available"
-          case false => s"🛑 User denied access to $label"
-        },
-        marginRight.px(10)
-      ),
-      button(
-        typ("button"),
-        inContext { thisNode =>
-          text <--
-            thisNode
-              .events(onClick)
-              .delayWithStatus(300)
-              .map {
-                case Pending(_) => "Checking..."
-                case _          => "Check again"
-              }
-              .startWith("Check again")
-        },
-        onClick.mapTo(
-          WebStorageVar.isLocalStorageAvailable()
-        ) --> storageAvailableVar
-      )
-    )
-  }
-
   def view(habits: Signal[Map[String, Habit]]): Div =
     div(
       className := "bg-white rounded-lg shadow-lg overflow-hidden",
-      availabilityChecker(
-        "LocalStorage",
-        WebStorageVar.isLocalStorageAvailable
-      ),
       div(
         className := "overflow-x-auto",
         table(
