@@ -1,14 +1,52 @@
 package braid
 
 import braid.date.Date
+import braid.date.Day
 import braid.model.Habit
+import com.raquo.airstream.web.WebStorageVar
 import com.raquo.laminar.api.L.{_, given}
 import com.raquo.laminar.api.features.unitArrows
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import io.bullet.borer.Codec
+import io.bullet.borer.Json
+import io.bullet.borer.derivation.MapBasedCodecs._
 
+import java.nio.charset.StandardCharsets
 import scala.scalajs.js
+import scala.util.Try
 
-final case class Habit(id: Int, name: String, streak: Int, dates: Seq[Date])
+final case class Habit(id: String, name: String, streak: Int, dates: Seq[Date])
+
+object Habit {
+
+  val defaultValues = Map(
+    "1" -> Habit("1", "Work on Braid", 0, Seq()),
+    "2" -> Habit("2", "Exercise", 5, Seq()),
+    "3" -> Habit("3", "Read", 3, Seq(Date.today()))
+  )
+
+  given habitCodec: Codec[Habit] = deriveCodec
+  given dateCodec: Codec[Date] = deriveCodec
+  given dayCodec: Codec[braid.date.Day] = deriveCodec
+  given monthCodec: Codec[braid.date.Month] = deriveCodec
+
+  // We can use session storage instead::
+  // https://github.com/raquo/Airstream/?tab=readme-ov-file#sessionstorage
+  val habitsVar = WebStorageVar
+    .localStorage(
+      key = "habits",
+      syncOwner = None
+    )
+    .withCodec[Map[String, Habit]](
+      encode = hs => Json.encode(hs).toUtf8String,
+      decode = jsonStr =>
+        Json
+          .decode(jsonStr.getBytes(StandardCharsets.UTF_8))
+          .to[Map[String, Habit]]
+          .valueTry,
+      default = Try(defaultValues)
+    )
+}
 
 class View(controller: Controller) {
   def last7Days: Seq[Date] = {
@@ -35,7 +73,7 @@ class View(controller: Controller) {
         )
       }
 
-  def view(habits: Signal[Map[Int, Habit]]): Div =
+  def view(habits: Signal[Map[String, Habit]]): Div =
     div(
       className := "bg-white rounded-lg shadow-lg overflow-hidden",
       div(
@@ -51,7 +89,12 @@ class View(controller: Controller) {
               ),
               th(
                 className := "px-4 py-4 text-center text-sm font-semibold text-gray-700",
-                "Streak"
+                "Streak",
+                onClick --> {
+                  // TODO: sort by streak
+                  println("Sorting ...")
+                  controller.sortByStreak()
+                }
               ),
               last7DaysTableHeadings,
               th(className := "px-4 py-4")
@@ -105,8 +148,11 @@ class View(controller: Controller) {
         className := "px-4 py-4 text-center",
         button(
           "Delete",
-          onClick.flatMap(_ => FetchStream.post("/habit/" + habit.id)) --> {
-            responseText => println(responseText)
+          onClick.flatMap(_ =>
+            FetchStream.post("/habit/delete/" + habit.id)
+          ) --> { responseText =>
+            // println(responseText) || assume its a success response
+            controller.dropSingleRow(habit.id)
           },
           className := "text-red-500 hover:text-red-700 transition"
         )

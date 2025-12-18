@@ -20,9 +20,16 @@ object Main
       header = "An amazing web application built with Krop"
     ) {
 
-  val habitRoutes =
+  // TODO: need idea how to store model(s) on the server side: json?
+  val habitRoute =
     Route(
       Request.post(Path / "habit" / Param.int),
+      Response.ok(Entity.text)
+    ).handle(habitId => s"Response==>HabitId: $habitId")
+
+  val habitDeleteRoute =
+    Route(
+      Request.post(Path / "habit" / "delete" / Param.int),
       Response.ok(Entity.text)
     ).handle(habitId => s"Response==>HabitId: $habitId")
 
@@ -45,7 +52,8 @@ object Main
 
   val application =
     home
-      .orElse(habitRoutes)
+      .orElse(habitRoute)
+      .orElse(habitDeleteRoute)
       .orElse(javascript)
       .orElse(assets)
       .orElse(Application.notFound)

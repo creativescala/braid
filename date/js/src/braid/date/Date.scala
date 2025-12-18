@@ -75,4 +75,5 @@ object Date {
   def today(): Date = {
     fromJsDate(new js.Date(js.Date.now()))
   }
+
 }
